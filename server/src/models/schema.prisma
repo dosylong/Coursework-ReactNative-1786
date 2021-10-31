@@ -1,0 +1,21 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+model Rental {
+  id           Int      @id @default(autoincrement())
+  address      String   @unique
+  property     String
+  bedroom      String
+  pickDate     DateTime
+  rentalPrice  Int
+  furniture    String
+  note         String
+  reporterName String
+}

@@ -6,33 +6,48 @@ import {
   Text,
   ToastAndroid,
   Platform,
-  AlertIOS,
+  FlatList,
 } from 'react-native';
-import { SearchBar, Card, Button } from 'react-native-elements';
+import { SearchBar, Button, Input } from 'react-native-elements';
 import axios from 'axios';
 import moment from 'moment';
 import RNModal from 'react-native-modal';
+import ListForm from '../../components/ListForm';
+import DetailNote from '../../components/DetailNote';
 
-export default function Home() {
+export default function Home({ navigation }) {
   const [search, setSearch] = useState('');
   const [items, setItems] = useState([]);
-  const [isModalVisible, setModalVisible] = useState(false);
   const [searchTimer, setSearchTimer] = useState(null);
-
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
+  const [detailNote, setDetailNote] = useState([]);
+  const [showNoteModal, setShowNoteModal] = useState(false);
 
   useEffect(() => {
-    axios
-      .get('http://192.168.101.9:5000/rentalz/getAllForm')
-      .then((response) => {
-        setItems(response.data.sort((a, b) => b.id - a.id));
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      const getAllForm = async () => {
+        const response = await axios.get(
+          'http://192.168.101.9:5000/rentalz/getAllForm'
+        );
+        console.log(response.data);
+        setItems(response.data.reverse());
+      };
+      getAllForm();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  // const getDetailNote = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       'http://192.168.101.9:5000/rentalz/getDetailNote'
+  //     );
+  //     console.log(response.data);
+  //     setDetailNote(response.data);
+  //     setShowDetailNote(true);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const onPressDelete = async (id) => {
     try {
@@ -40,20 +55,16 @@ export default function Home() {
         'http://192.168.101.9:5000/rentalz/deleteForm',
         { id }
       );
-      console.log(response);
-      setItems(items.filter((item) => item.id !== response.data.id));
-      if (Platform.OS === 'android') {
-        ToastAndroid.show(
-          response.data.message,
-          ToastAndroid.SHORT,
-          ToastAndroid.TOP,
-          30,
-          55
-        );
-      } else {
-        AlertIOS.alert(response.data.message);
-      }
-      setModalVisible(!isModalVisible);
+      console.log('Deleted at id:', id);
+      setItems(items.filter((i) => i.id !== id));
+      ToastAndroid.show(
+        response.data.message,
+        ToastAndroid.SHORT,
+        ToastAndroid.TOP,
+        30,
+        55
+      );
+      // setModalVisible(!isModalVisible);
     } catch (error) {
       console.log(error);
     }
@@ -62,7 +73,7 @@ export default function Home() {
   const onHandleSearch = async (address) => {
     try {
       const response = await axios.get(
-        ` http://192.168.101.9:5000/rentalz/searchForm?address=${address}`
+        `http://192.168.101.9:5000/rentalz/searchForm?address=${address}`
       );
       setItems(response.data);
     } catch (error) {
@@ -81,6 +92,7 @@ export default function Home() {
       }, 500)
     );
   };
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -94,75 +106,37 @@ export default function Home() {
           }}
           value={search}
         />
-        <View style={styles.cardContainer}>
-          {items.map((item) => {
-            return (
-              <Card key={item.id} containerStyle={styles.card}>
-                <Card.Title>{item.reporterName}</Card.Title>
-                <Card.Divider />
-                <Card.Image
-                  source={{
-                    uri: 'https://images.hdqwalls.com/download/dubai-popular-hotel-4k-1920x1080.jpg',
-                  }}
-                />
-                <Text>{item.address}</Text>
-                <Text>{item.property}</Text>
-                <Text>{item.bedroom}</Text>
-                <Text>{moment(item.pickDate).format('DD.MM.YYYY')}</Text>
-                <Text>{item.rentalPrice}</Text>
-                <Text>{item.furniture}</Text>
-                <Text>{item.note}</Text>
-                <Text>{item.reporterName}</Text>
-                <View style={styles.viewButton}>
-                <Button
-                  title="Edit extra note"
-                  buttonStyle={styles.buttonNote}
-                  onPress={() => {
-                    console.log(item.id);
-                  }}
-                />
-                <Button
-                  title="Add extra note"
-                  buttonStyle={styles.buttonNote}
-                  onPress={() => {
-                    console.log(item.id);
-                  }}
-                />
-                <Button
-                  title="Delete"
-                  buttonStyle={styles.buttonDelete}
-                  onPress={toggleModal}
-                />
-                </View>
-                <RNModal
-                  isVisible={isModalVisible}
-                  style={{ margin: 50 }}
-                  onBackdropPress={toggleModal}
-                  backdropColor="#4D4D4D"
-                >
-                  <View style={styles.modalView}>
-                    <Text style={styles.modalTitle}>Confirm?</Text>
-                    <Text style={styles.modalContent}>
-                      Are you sure you want to delete this form?
-                    </Text>
-                    <View style={styles.modalButton}>
-                      <Button
-                        title="Confirm"
-                        buttonStyle={styles.buttonConfirm}
-                        onPress={() => onPressDelete(item.id)}
-                      />
-                      <Button
-                        title="Cancel"
-                        buttonStyle={styles.buttonCancel}
-                        onPress={toggleModal}
-                      />
-                    </View>
-                  </View>
-                </RNModal>
-              </Card>
-            );
-          })}
+        <View>
+          {items.length > 0 ? (
+            <FlatList
+              data={items}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                return <ListForm item={item} onPressDelete={onPressDelete} />;
+              }}
+            />
+          ) : (
+            <Text style={styles.textNoItem}>
+              You have no items match! 🥺, please add new one!
+            </Text>
+          )}
         </View>
+        {/* <View>
+          <FlatList
+            data={getDetailNote}
+            keyExtractor={(dNote) => dNote.id}
+            renderItem={({ dNote }) => {
+              return (
+                <DetailNote
+                  dNote={dNote}
+                  onClose={() => setShowDetailNote(false)}
+                  onOpen={() => setShowDetailNote(true)}
+                  showNoteModal1={() => setShowDetailNote(true)}
+                />
+              );
+            }}
+          />
+        </View> */}
       </View>
     </ScrollView>
   );
@@ -187,62 +161,9 @@ const styles = StyleSheet.create({
   searchBarInputText: {
     color: 'black',
   },
-  cardContainer: {
-    marginTop: 10,
-  },
-  card: {
-    marginBottom: 10,
-    borderRadius: 15,
-  },
-  viewButton: {
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-  },
-  buttonNote: {
-    backgroundColor: '#00BFFF',
-    borderRadius: 20,
-    marginTop: 10,
-  },
-  buttonDelete: {
-    backgroundColor: '#E74B50',
-    borderRadius: 20,
-    marginTop: 10,
-    width: 330,
-  },
-  modalView: {
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    maxHeight: '40%',
-    borderRadius: 15,
-  },
-  modalButton: {
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 5,
-    paddingHorizontal: 30,
-  },
-  buttonCancel: {
-    backgroundColor: '#E74B50',
-    borderRadius: 20,
-    marginTop: 10,
-    width: 120,
-  },
-  buttonConfirm: {
-    backgroundColor: '#00BFFF',
-    borderRadius: 20,
-    marginTop: 10,
-    width: 120,
-  },
-  modalTitle: {
-    fontSize: 25,
+  textNoItem: {
     textAlign: 'center',
-    fontWeight: 'bold',
-    padding: 10,
-  },
-  modalContent: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 15,
+    fontSize: 15,
+    paddingVertical: 224,
   },
 });

@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  ToastAndroid,
-  Platform,
-  AlertIOS,
-} from 'react-native';
+import { StyleSheet, View, Text, ScrollView, ToastAndroid } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { Formik } from 'formik';
 import * as yup from 'yup';
@@ -66,18 +58,15 @@ export default function Form() {
         'http://192.168.101.9:5000/rentalz/createForm',
         confirmData
       );
-      console.log(response);
-      if (Platform.OS === 'android') {
-        ToastAndroid.show(
-          response.data.message,
-          ToastAndroid.SHORT,
-          ToastAndroid.TOP,
-          30,
-          55
-        );
-      } else {
-        AlertIOS.alert(response.data.message);
-      }
+      console.log(response.data);
+      ToastAndroid.show(
+        response.data.message,
+        ToastAndroid.SHORT,
+        ToastAndroid.TOP,
+        30,
+        55
+      );
+
       if (response.data.message === 'Form created!') {
         setModalVisible(!isModalVisible);
         resetForm();

@@ -4,13 +4,13 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch"]
 }
 
 model Rental {
-  id           Int      @id @default(autoincrement())
-  address      String   @unique
+  id           String      @id @default(uuid())
+  address      String      @unique
   property     String
   bedroom      String
   pickDate     DateTime
@@ -18,4 +18,14 @@ model Rental {
   furniture    String
   note         String
   reporterName String
+  detailNote   DetailNote?
+}
+
+model DetailNote {
+  id           Int    @id @default(autoincrement())
+  rental       Rental @relation(fields: [detailNoteId], references: [id], onDelete: Cascade)
+  property     String
+  bedroom      String
+  furniture    String
+  detailNoteId String @unique
 }

@@ -23,6 +23,10 @@ class RentalController {
           property: req.body.property,
           rentalPrice: Number(req.body.rentalPrice),
           reporterName: req.body.reporterName,
+
+          detailNote: {
+            create: { bedroom: '', property: '', furniture: '' },
+          },
         },
       });
       return res.json({ ...createForm, message: 'Form created!' });
@@ -33,7 +37,11 @@ class RentalController {
 
   getAllForm = async (req, res, next) => {
     try {
-      const getAllFormInDb = await prisma.rental.findMany();
+      const getAllFormInDb = await prisma.rental.findMany({
+        include: {
+          detailNote: true,
+        },
+      });
       return res.json(getAllFormInDb);
     } catch (error) {
       return next(error);
@@ -59,11 +67,42 @@ class RentalController {
         where: {
           address: {
             contains: req.query.address,
-            mode: 'insensitive'
+            mode: 'insensitive',
           },
         },
       });
       return res.json(searchFormInDb);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  createDetailNote = async (req, res, next) => {
+    try {
+      const createDetailNote = await prisma.detailNote.update({
+        where: {
+          detailNoteId: String(req.query.detailNoteId),
+        },
+        data: {
+          property: req.body.property,
+          bedroom: req.body.bedroom,
+          furniture: req.body.furniture,
+        },
+      });
+      return res.json({ ...createDetailNote, message: 'Detail note added!' });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  getDetailNote = async (req, res, next) => {
+    try {
+      const getDetailNoteInDb = await prisma.detailNote.findMany({
+        where: {
+          id: req.body.id,
+        },
+      });
+      return res.json(getDetailNoteInDb);
     } catch (error) {
       return next(error);
     }

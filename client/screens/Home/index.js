@@ -57,12 +57,12 @@ export default function Home({ navigation }) {
       );
       console.log('Deleted at id:', id);
       setItems(items.filter((i) => i.id !== id));
-      ToastAndroid.show(
+      ToastAndroid.showWithGravityAndOffset(
         response.data.message,
         ToastAndroid.SHORT,
         ToastAndroid.TOP,
-        30,
-        55
+        10,
+        110
       );
       // setModalVisible(!isModalVisible);
     } catch (error) {

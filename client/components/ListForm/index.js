@@ -43,12 +43,12 @@ export default function ListForm(props) {
         `http://192.168.101.9:5000/rentalz/createDetailNote?detailNoteId=${detailNoteId}`,
         formData
       );
-      ToastAndroid.show(
+      ToastAndroid.showWithGravityAndOffset(
         response.data.message,
         ToastAndroid.SHORT,
         ToastAndroid.TOP,
-        30,
-        55
+        10,
+        110
       );
       console.log('Edited note at id:', detailNoteId);
       setShowNoteModal(false);
@@ -92,7 +92,7 @@ export default function ListForm(props) {
             onPress={showNoteModal1}
           /> */}
           <Button
-            title="Edit note"
+            title="Edit detail note"
             buttonStyle={styles.buttonNote}
             onPress={() => setShowNoteModal(true)}
           />

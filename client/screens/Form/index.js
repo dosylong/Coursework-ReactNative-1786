@@ -59,12 +59,12 @@ export default function Form() {
         confirmData
       );
       console.log(response.data);
-      ToastAndroid.show(
+      ToastAndroid.showWithGravityAndOffset(
         response.data.message,
         ToastAndroid.SHORT,
         ToastAndroid.TOP,
-        30,
-        55
+        10,
+        110
       );
 
       if (response.data.message === 'Form created!') {
